@@ -24,13 +24,11 @@ def weightedFusion(cr1, cr2, cb1, cb2):
 
     return cr_fuse, cb_fuse
 
-def fusePostProcess(y_f, img1, img2):
+def fusePostProcess(y_f, img1, img2, single = True):
     with torch.no_grad():    
         # Recover value space [-1, 1] -> [0, 255]
         y_f  = (y_f + 1) * 127.5
-        # img1 = torch.cat([y_f, img1[:, 1:]], 1)
         img1 = (img1 + 1) * 127.5
-        # img2 = torch.cat([y_f, img2[:, 1:]], 1)
         img2 = (img2 + 1) * 127.5
 
         # weight fusion for Cb and Cr
@@ -41,33 +39,25 @@ def fusePostProcess(y_f, img1, img2):
             cb2 = img2[:, 2:3]
         )
 
-        # img2[:, 0] = y_f
-        # img2[:, 1] = cr_fuse
-        # img2[:, 2] = cb_fuse
-        # img = img2.transpose(1, 2).transpose(2, 3).cpu().numpy()[0]
-        # img = (img).astype(np.uint8)
-        # img = cv2.cvtColor(img, cv2.COLOR_YCrCb2BGR)
-        # cv2.imshow('show', img[:, :, ::-1])
-        # cv2.waitKey()
-        # exit()
-
         # YCbCr -> BGR
-        # img = torch.cat([y_f, cr_fuse, cb_fuse], 1)
         fuse_out = torch.zeros_like(img1)
         fuse_out[:, 0] = y_f
         fuse_out[:, 1] = cr_fuse
         fuse_out[:, 2] = cb_fuse
-        # img[:, 0] = img1[:, 0]
-        # img[:, 1] = img1[:, 1]
-        # img[:, 2] = img1[:, 2]
-        fuse_out = fuse_out.transpose(1, 2).transpose(2, 3).cpu().numpy()[0]
+        fuse_out = fuse_out.transpose(1, 2).transpose(2, 3).cpu().numpy()
         fuse_out = fuse_out.astype(np.uint8)
-        fuse_out = cv2.cvtColor(fuse_out, cv2.COLOR_YCrCb2BGR)
+        for i, m in enumerate(fuse_out):
+            fuse_out[i] = cv2.cvtColor(m, cv2.COLOR_YCrCb2RGB)
 
-        img1 = img1.transpose(1, 2).transpose(2, 3).cpu().numpy()[0].astype(np.uint8)
-        img1 = cv2.cvtColor(img1, cv2.COLOR_YCrCb2BGR)
-        img2 = img2.transpose(1, 2).transpose(2, 3).cpu().numpy()[0].astype(np.uint8)
-        img2 = cv2.cvtColor(img2, cv2.COLOR_YCrCb2BGR)
-
-        out  = np.concatenate((img1, img2, fuse_out), 1)
+        # Combine the output
+        if not single:
+            img1 = img1.transpose(1, 2).transpose(2, 3).cpu().numpy().astype(np.uint8)
+            for i, m in enumerate(img1):
+                img1[i] = cv2.cvtColor(m, cv2.COLOR_YCrCb2RGB)
+            img2 = img2.transpose(1, 2).transpose(2, 3).cpu().numpy().astype(np.uint8)
+            for i, m in enumerate(img2):
+                img2[i] = cv2.cvtColor(m, cv2.COLOR_YCrCb2RGB)
+            out  = np.concatenate((img1, img2, fuse_out), 2)
+        else:
+            out = fuse_out
         return out

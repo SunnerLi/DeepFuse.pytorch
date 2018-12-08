@@ -1,17 +1,20 @@
 from utils import INFO, fusePostProcess
 from loss  import MEF_SSIM_Loss
 from model import DeepFuse
-from parse import parse
+from opts  import TrainOptions
 
 import torchvision_sunner.transforms as sunnertransforms
 import torchvision_sunner.data as sunnerData
 import torchvision.transforms as transforms
 
+from matplotlib import pyplot as plt
 from torch.optim import Adam
 from tqdm import tqdm
 
 import numpy as np
+import torch
 import cv2
+import os
 
 def train(opts):
     # Create the loader
@@ -31,8 +34,17 @@ def train(opts):
     criterion = MEF_SSIM_Loss().to(opts.device)
     optimizer = Adam(model.parameters(), lr = 0.0004)
 
+    # Load pre-train model
+    if os.path.exists(opts.resume):
+        state = torch.load(opts.resume)
+        Loss_list = state['loss']
+        model.load_state_dict(state['model'])
+    else:
+        Loss_list = []
+
     # Train
-    for ep in range(1000):
+    for ep in range(opts.epoch):
+        loss_list = []
         bar = tqdm(loader)
         for (patch1, patch2) in bar:
             # Extract the luminance and move to computation device
@@ -44,26 +56,36 @@ def train(opts):
             model.setInput(patch1_lum, patch2_lum)
             y_f  = model.forward()
             loss = criterion(y_1 = patch1_lum, y_2 = patch2_lum, y_f = y_f)
-            bar.set_description("Epoch: %d   Loss: %.6f" % (ep, loss.item()))
+            loss_list.append(loss.item())
+            bar.set_description("Epoch: %d   Loss: %.6f" % (ep, loss_list[-1]))
 
             # Update the parameters
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+        Loss_list.append(np.mean(loss_list))
 
-            # patch2 = (patch2 + 1) * 127.5
-            # img = patch2.transpose(1, 2).transpose(2, 3).cpu().numpy()[0]
-            # img = (img).astype(np.uint8)
-            # img = cv2.cvtColor(img, cv2.COLOR_YCrCb2BGR)
-            # cv2.imshow('show', img[:, :, ::-1])
-            # cv2.waitKey()
-            # exit()
+        # Save the training image
+        img = fusePostProcess(y_f, patch1, patch2, single=False)
+        cv2.imwrite(os.path.join(opts.det, 'image', str(ep) + ".png"), img[0, :, :, ::-1])
 
-            img = fusePostProcess(y_f, patch1, patch2)
-            cv2.imshow('show', img[:, :, ::-1])
-            cv2.waitKey(10)
-            # exit()
+        # Save the training model
+        if ep % (opts.epoch // 5) == 0:
+            model_name = str(ep) + ".pth"
+        else:
+            model_name = "latest.pth"
+        state = {
+            'model': model.state_dict(),
+            'loss' : Loss_list
+        }
+        torch.save(state, os.path.join(opts.det, 'model', model_name))
+
+    # Plot the loss curve
+    plt.clf()
+    plt.plot(Loss_list, '-o')
+    plt.title("loss curve")
+    plt.savefig(os.path.join(opts.det, 'image', "curve.png"))
 
 if __name__ == '__main__':
-    opts = parse()
+    opts = TrainOptions().parse()
     train(opts)

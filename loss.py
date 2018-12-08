@@ -66,12 +66,12 @@ class MEF_SSIM_Loss(nn.Module):
     def w_fn(self, y):
         """
             Return the weighting function that MEF-SSIM defines
-            Since the author doesn't mention the formula, we use l2-norm for alternation
+            We use the power engery function as the paper describe: https://ece.uwaterloo.ca/~k29ma/papers/15_TIP_MEF.pdf
 
             Arg:    y   (torch.Tensor)  - The structure tensor
             Ret:    The weight of the given structure
         """
-        out = torch.sqrt(torch.sum(y ** 2))
+        out = torch.sum(y ** 2)
         return out
 
     def forward(self, y_1, y_2, y_f):
