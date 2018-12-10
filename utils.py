@@ -6,7 +6,7 @@ import numpy as np
 import torch
 import cv2
 
-L1_NORM = lambda b: torch.mean(torch.abs(b))
+L1_NORM = lambda b: torch.sum(torch.abs(b))
 
 def INFO(string):
     print("[ DeepFuse ] %s" % (string))
@@ -41,22 +41,22 @@ def fusePostProcess(y_f, img1, img2, single = True):
 
         # YCbCr -> BGR
         fuse_out = torch.zeros_like(img1)
-        fuse_out[:, 0] = y_f
-        fuse_out[:, 1] = cr_fuse
-        fuse_out[:, 2] = cb_fuse
+        fuse_out[:, 0:1] = y_f
+        fuse_out[:, 1:2] = cr_fuse
+        fuse_out[:, 2:3] = cb_fuse
         fuse_out = fuse_out.transpose(1, 2).transpose(2, 3).cpu().numpy()
         fuse_out = fuse_out.astype(np.uint8)
         for i, m in enumerate(fuse_out):
-            fuse_out[i] = cv2.cvtColor(m, cv2.COLOR_YCrCb2RGB)
+            fuse_out[i] = cv2.cvtColor(m, cv2.COLOR_YCrCb2BGR)
 
         # Combine the output
         if not single:
             img1 = img1.transpose(1, 2).transpose(2, 3).cpu().numpy().astype(np.uint8)
             for i, m in enumerate(img1):
-                img1[i] = cv2.cvtColor(m, cv2.COLOR_YCrCb2RGB)
+                img1[i] = cv2.cvtColor(m, cv2.COLOR_YCrCb2BGR)
             img2 = img2.transpose(1, 2).transpose(2, 3).cpu().numpy().astype(np.uint8)
             for i, m in enumerate(img2):
-                img2[i] = cv2.cvtColor(m, cv2.COLOR_YCrCb2RGB)
+                img2[i] = cv2.cvtColor(m, cv2.COLOR_YCrCb2BGR)
             out  = np.concatenate((img1, img2, fuse_out), 2)
         else:
             out = fuse_out

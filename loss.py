@@ -71,7 +71,7 @@ class MEF_SSIM_Loss(nn.Module):
             Arg:    y   (torch.Tensor)  - The structure tensor
             Ret:    The weight of the given structure
         """
-        out = torch.sum(y ** 2)
+        out = torch.sqrt(torch.sum(y ** 2))
         return out
 
     def forward(self, y_1, y_2, y_f):

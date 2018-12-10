@@ -16,9 +16,9 @@ def presentParameters(args_dict):
 class TrainOptions():
     def __init__(self):
         parser = argparse.ArgumentParser()
-        parser.add_argument('--folder1', type = str, required = True)
-        parser.add_argument('--folder2', type = str, required = True)
-        parser.add_argument('--batch_size', type = int, default = 32)
+        parser.add_argument('--folder', type = str, default = "/home/sunner/Music/HDREyeDataset/images/Bracketed_images")
+        parser.add_argument('--crop_size', type = int, default = 256)
+        parser.add_argument('--batch_size', type = int, default = 8)
         parser.add_argument('--resume', type = str, default = "1.pth")
         parser.add_argument('--det', type = str, default = "train_result")
         parser.add_argument('--epoch', type = int, default = 100)

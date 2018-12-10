@@ -1,7 +1,8 @@
+from dataset import BracketedDataset
 from utils import INFO, fusePostProcess
 from loss  import MEF_SSIM_Loss
-from model import DeepFuse
 from opts  import TrainOptions
+from model import DeepFuse
 
 import torchvision_sunner.transforms as sunnertransforms
 import torchvision_sunner.data as sunnerData
@@ -18,21 +19,23 @@ import os
 
 def train(opts):
     # Create the loader
-    loader = sunnerData.DataLoader(sunnerData.ImageDataset(
-        root = [[opts.folder1], [opts.folder2]],
-        transform = transforms.Compose([
-            sunnertransforms.Resize((256, 256)),
-            sunnertransforms.ToTensor(),
-            sunnertransforms.ToFloat(),
-            sunnertransforms.Transpose(sunnertransforms.BHWC2BCHW),
-            sunnertransforms.Normalize(),
-        ])), batch_size = opts.batch_size, shuffle = False, num_workers = 2
+    loader = sunnerData.DataLoader(
+        dataset = BracketedDataset(
+            root = opts.folder,
+            crop_size = opts.crop_size,
+            transform = transforms.Compose([
+                sunnertransforms.ToTensor(),
+                sunnertransforms.ToFloat(),
+                sunnertransforms.Transpose(sunnertransforms.BHWC2BCHW),
+                sunnertransforms.Normalize(),
+            ])
+        ), batch_size = opts.batch_size, shuffle = False, num_workers = 8
     )
 
     # Create the model
     model = DeepFuse(device = opts.device)
     criterion = MEF_SSIM_Loss().to(opts.device)
-    optimizer = Adam(model.parameters(), lr = 0.0004)
+    optimizer = Adam(model.parameters(), lr = 0.0001)
 
     # Load pre-train model
     if os.path.exists(opts.resume):

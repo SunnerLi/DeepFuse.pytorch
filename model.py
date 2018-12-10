@@ -25,11 +25,11 @@ class FusionLayer(nn.Module):
 class DeepFuse(nn.Module):
     def __init__(self, device = 'cpu'):
         super().__init__()
-        self.layer1 = ConvLayer(1, 16, 5)
+        self.layer1 = ConvLayer(1, 16, 5, last = nn.LeakyReLU)
         self.layer2 = ConvLayer(16, 32, 7)
         self.layer3 = FusionLayer()
-        self.layer4 = ConvLayer(32, 32, 7)
-        self.layer5 = ConvLayer(32, 16, 5)
+        self.layer4 = ConvLayer(32, 32, 7, last = nn.LeakyReLU)
+        self.layer5 = ConvLayer(32, 16, 5, last = nn.LeakyReLU)
         self.layer6 = ConvLayer(16, 1, 5, last = nn.Tanh)
         self.device = device
         self.to(self.device)
