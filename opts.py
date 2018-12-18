@@ -6,6 +6,7 @@ import os
 def presentParameters(args_dict):
     """
         Print the parameters setting line by line
+        
         Arg:    args_dict   - The dict object which is transferred from argparse Namespace object
     """
     INFO("========== Parameters ==========")
@@ -14,14 +15,27 @@ def presentParameters(args_dict):
     INFO("===============================")
 
 class TrainOptions():
+    """
+        Argument Explaination
+        ======================================================================================================================
+                Symbol          Type            Default                         Explaination
+        ----------------------------------------------------------------------------------------------------------------------
+            --folder            Str         /images/Bracketed_images        The folder path of bracketed image
+            --crop_size         Int         256                             -
+            --batch_size        Int         8                               -
+            --resume            Str         1.pth                           The path of pre-trained model
+            --det               Str         train_result                    The path of folder you want to store the result in
+            --epoch             Int         100                             -
+        ----------------------------------------------------------------------------------------------------------------------
+    """
     def __init__(self):
         parser = argparse.ArgumentParser()
-        parser.add_argument('--folder', type = str, default = "/home/sunner/Music/HDREyeDataset/images/Bracketed_images")
-        parser.add_argument('--crop_size', type = int, default = 256)
-        parser.add_argument('--batch_size', type = int, default = 8)
-        parser.add_argument('--resume', type = str, default = "1.pth")
-        parser.add_argument('--det', type = str, default = "train_result")
-        parser.add_argument('--epoch', type = int, default = 100)
+        parser.add_argument('--folder'      , type = str, default = "/home/sunner/Music/HDREyeDataset/images/Bracketed_images")
+        parser.add_argument('--crop_size'   , type = int, default = 256)
+        parser.add_argument('--batch_size'  , type = int, default = 8)
+        parser.add_argument('--resume'      , type = str, default = "1.pth")
+        parser.add_argument('--det'         , type = str, default = "train_result")
+        parser.add_argument('--epoch'       , type = int, default = 100)
         self.opts = parser.parse_args()
         self.opts.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -44,6 +58,17 @@ class TrainOptions():
 ###############################################################################################################
 
 class TestOptions():
+    """
+        Argument Explaination
+        ======================================================================================================================
+                Symbol          Type            Default                         Explaination
+        ----------------------------------------------------------------------------------------------------------------------
+            --image1            Str         X                               The path of under-exposure image
+            --image2            Str         X                               The path of over-exposure image
+            --model             Str         model.pth                       The path of pre-trained model
+            --res               Str         result.png                      The path to store the fusing image
+        ----------------------------------------------------------------------------------------------------------------------
+    """
     def __init__(self):
         parser = argparse.ArgumentParser()
         parser.add_argument('--image1', type = str, required = True)

@@ -6,12 +6,27 @@ import numpy as np
 import torch
 import cv2
 
+"""
+    This script defines the fundamental function which will be used in other script
+
+    Author: SunnerLi
+"""
+
 L1_NORM = lambda b: torch.sum(torch.abs(b))
 
 def INFO(string):
     print("[ DeepFuse ] %s" % (string))
 
 def weightedFusion(cr1, cr2, cb1, cb2):
+    """
+        Perform the weighted fusing for Cb and Cr channel (paper equation 6)
+
+        Arg:    cr1     (torch.Tensor)  - The Cr slice of 1st image
+                cr2     (torch.Tensor)  - The Cr slice of 2nd image
+                cb1     (torch.Tensor)  - The Cb slice of 1st image
+                cb2     (torch.Tensor)  - The Cb slice of 2nd image
+        Ret:    The fused Cr slice and Cb slice
+    """
     # Fuse Cr channel
     cr_up = (cr1 * L1_NORM(cr1 - 128) + cr2 * L1_NORM(cr2 - 128))
     cr_down = L1_NORM(cr1 - 128) + L1_NORM(cr2 - 128)
@@ -25,6 +40,15 @@ def weightedFusion(cr1, cr2, cb1, cb2):
     return cr_fuse, cb_fuse
 
 def fusePostProcess(y_f, img1, img2, single = True):
+    """
+        Perform the post fusion process toward the both image with generated luminance slice
+
+        Arg:    y_f     (torch.Tensor)  - The generated luminance slice
+                img1    (torch.Tensor)  - The 1st image tensor (in YCrCb format)
+                img2    (torch.Tensor)  - The 2nd image tensor (in YCrCb format)
+                single  (Bool)          - If return the fusion result only or not
+        Ret:    The fusion output image
+    """
     with torch.no_grad():    
         # Recover value space [-1, 1] -> [0, 255]
         y_f  = (y_f + 1) * 127.5

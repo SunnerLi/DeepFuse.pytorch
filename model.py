@@ -1,6 +1,12 @@
 import torch.nn as nn
 import torch
 
+"""
+    This script defines the DeepFuse model and related module
+
+    Author: SunnerLi
+"""
+
 class ConvLayer(nn.Module):
     def __init__(self, in_channels = 1, out_channels = 16, kernel_size = 5, last = nn.ReLU):
         super().__init__()

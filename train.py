@@ -17,6 +17,12 @@ import torch
 import cv2
 import os
 
+"""
+    This script defines the training procedure of DeepFuse
+
+    Author: SunnerLi
+"""
+
 def train(opts):
     # Create the loader
     loader = sunnerData.DataLoader(
@@ -85,7 +91,7 @@ def train(opts):
 
     # Plot the loss curve
     plt.clf()
-    plt.plot(Loss_list, '-o')
+    plt.plot(Loss_list, '-')
     plt.title("loss curve")
     plt.savefig(os.path.join(opts.det, 'image', "curve.png"))
 

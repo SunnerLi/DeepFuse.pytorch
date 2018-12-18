@@ -11,6 +11,12 @@ import torch
 import cv2
 import os
 
+"""
+    This script defines the inference procedure of DeepFuse
+
+    Author: SunnerLi
+"""
+
 def inference(opts):
     # Load the image
     ops = transforms.Compose([
