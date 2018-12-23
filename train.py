@@ -35,7 +35,7 @@ def train(opts):
                 sunnertransforms.Transpose(sunnertransforms.BHWC2BCHW),
                 sunnertransforms.Normalize(),
             ])
-        ), batch_size = opts.batch_size, shuffle = False, num_workers = 8
+        ), batch_size = opts.batch_size, shuffle = True, num_workers = 8
     )
 
     # Create the model
@@ -52,10 +52,10 @@ def train(opts):
         Loss_list = []
 
     # Train
-    for ep in range(opts.epoch):
+    bar = tqdm(range(opts.epoch))
+    for ep in bar:
         loss_list = []
-        bar = tqdm(loader)
-        for (patch1, patch2) in bar:
+        for (patch1, patch2) in loader:
             # Extract the luminance and move to computation device
             patch1, patch2 = patch1.to(opts.device), patch2.to(opts.device)
             patch1_lum = patch1[:, 0:1]
@@ -64,7 +64,7 @@ def train(opts):
             # Forward and compute loss
             model.setInput(patch1_lum, patch2_lum)
             y_f  = model.forward()
-            loss = criterion(y_1 = patch1_lum, y_2 = patch2_lum, y_f = y_f)
+            loss, y_hat = criterion(y_1 = patch1_lum, y_2 = patch2_lum, y_f = y_f)
             loss_list.append(loss.item())
             bar.set_description("Epoch: %d   Loss: %.6f" % (ep, loss_list[-1]))
 
@@ -75,8 +75,9 @@ def train(opts):
         Loss_list.append(np.mean(loss_list))
 
         # Save the training image
-        img = fusePostProcess(y_f, patch1, patch2, single=False)
-        cv2.imwrite(os.path.join(opts.det, 'image', str(ep) + ".png"), img[0, :, :, ::-1])
+        if ep % 100 == 0:
+            img = fusePostProcess(y_f, y_hat, patch1, patch2, single=False)
+            cv2.imwrite(os.path.join(opts.det, 'image', str(ep) + ".png"), img[0, :, :, :])
 
         # Save the training model
         if ep % (opts.epoch // 5) == 0:

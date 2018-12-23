@@ -28,18 +28,18 @@ def weightedFusion(cr1, cr2, cb1, cb2):
         Ret:    The fused Cr slice and Cb slice
     """
     # Fuse Cr channel
-    cr_up = (cr1 * L1_NORM(cr1 - 128) + cr2 * L1_NORM(cr2 - 128))
-    cr_down = L1_NORM(cr1 - 128) + L1_NORM(cr2 - 128)
+    cr_up = (cr1 * L1_NORM(cr1 - 127.5) + cr2 * L1_NORM(cr2 - 127.5))
+    cr_down = L1_NORM(cr1 - 127.5) + L1_NORM(cr2 - 127.5)
     cr_fuse = cr_up / cr_down
 
     # Fuse Cb channel
-    cb_up = (cb1 * L1_NORM(cb1 - 128) + cb2 * L1_NORM(cb2 - 128))
-    cb_down = L1_NORM(cb1 - 128) + L1_NORM(cb2 - 128)
+    cb_up = (cb1 * L1_NORM(cb1 - 127.5) + cb2 * L1_NORM(cb2 - 127.5))
+    cb_down = L1_NORM(cb1 - 127.5) + L1_NORM(cb2 - 127.5)
     cb_fuse = cb_up / cb_down
 
     return cr_fuse, cb_fuse
 
-def fusePostProcess(y_f, img1, img2, single = True):
+def fusePostProcess(y_f, y_hat, img1, img2, single = True):
     """
         Perform the post fusion process toward the both image with generated luminance slice
 
@@ -51,9 +51,10 @@ def fusePostProcess(y_f, img1, img2, single = True):
     """
     with torch.no_grad():    
         # Recover value space [-1, 1] -> [0, 255]
-        y_f  = (y_f + 1) * 127.5
-        img1 = (img1 + 1) * 127.5
-        img2 = (img2 + 1) * 127.5
+        y_f   = (y_f   + 1) * 127.5
+        y_hat = (y_hat + 1) * 127.5
+        img1  = (img1  + 1) * 127.5
+        img2  = (img2  + 1) * 127.5
 
         # weight fusion for Cb and Cr
         cr_fuse, cb_fuse = weightedFusion(
@@ -75,13 +76,21 @@ def fusePostProcess(y_f, img1, img2, single = True):
 
         # Combine the output
         if not single:
-            img1 = img1.transpose(1, 2).transpose(2, 3).cpu().numpy().astype(np.uint8)
-            for i, m in enumerate(img1):
-                img1[i] = cv2.cvtColor(m, cv2.COLOR_YCrCb2BGR)
-            img2 = img2.transpose(1, 2).transpose(2, 3).cpu().numpy().astype(np.uint8)
-            for i, m in enumerate(img2):
-                img2[i] = cv2.cvtColor(m, cv2.COLOR_YCrCb2BGR)
-            out  = np.concatenate((img1, img2, fuse_out), 2)
+            out1 = img1.transpose(1, 2).transpose(2, 3).cpu().numpy().astype(np.uint8)
+            for i, m in enumerate(out1):
+                out1[i] = cv2.cvtColor(m, cv2.COLOR_YCrCb2BGR)
+            out2 = img2.transpose(1, 2).transpose(2, 3).cpu().numpy().astype(np.uint8)
+            for i, m in enumerate(out2):
+                out2[i] = cv2.cvtColor(m, cv2.COLOR_YCrCb2BGR)
+            out3 = torch.zeros_like(img1)
+            out3[:, 0:1] = y_hat
+            out3[:, 1:2] = cr_fuse
+            out3[:, 2:3] = cb_fuse
+            out3 = out3.transpose(1, 2).transpose(2, 3).cpu().numpy()
+            out3 = out3.astype(np.uint8)
+            for i, m in enumerate(out3):
+                out3[i] = cv2.cvtColor(m, cv2.COLOR_YCrCb2BGR)
+            out  = np.concatenate((out1, out2, fuse_out, out3), 2)
         else:
             out = fuse_out
         return out

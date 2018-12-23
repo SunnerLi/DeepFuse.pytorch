@@ -10,6 +10,8 @@ import torch
     Author: SunnerLi
 """
 
+L2_NORM = lambda b: torch.sqrt(torch.sum((b + 1e-8) ** 2))
+
 class MEF_SSIM_Loss(nn.Module):
     def __init__(self, window_size = 11, size_average = True):
         """
@@ -71,7 +73,10 @@ class MEF_SSIM_Loss(nn.Module):
             Arg:    y   (torch.Tensor)  - The structure tensor
             Ret:    The weight of the given structure
         """
-        out = torch.sqrt(torch.sum(y ** 2))
+        # out = torch.sum(y.pow(4)).pow(1/4)
+        # out = torch.sum(y.pow(3)).pow(1/3)
+        # out = torch.sqrt(torch.sum(y ** 2))
+        out = torch.sum(torch.abs(y))
         return out
 
     def forward(self, y_1, y_2, y_f):
@@ -87,18 +92,19 @@ class MEF_SSIM_Loss(nn.Module):
         miu_y = (y_1 + y_2) / 2
 
         # Get the c_hat
-        c_1 = torch.sqrt(torch.sum((y_1 - miu_y) ** 2))
-        c_2 = torch.sqrt(torch.sum((y_2 - miu_y) ** 2))
+        c_1 = L2_NORM(y_1 - miu_y)
+        c_2 = L2_NORM(y_2 - miu_y)
         c_hat = torch.max(torch.stack([c_1, c_2]))
 
         # Get the s_hat
-        s_1 = (y_1 - miu_y) / torch.sqrt(torch.sum((y_1 - miu_y + 0.0001) ** 2))
-        s_2 = (y_2 - miu_y) / torch.sqrt(torch.sum((y_2 - miu_y + 0.0001) ** 2))
+        s_1 = (y_1 - miu_y) / L2_NORM(y_1 - miu_y)
+        s_2 = (y_2 - miu_y) / L2_NORM(y_2 - miu_y)
         s_bar = (self.w_fn(y_1) * s_1 + self.w_fn(y_2) * s_2) / (self.w_fn(y_1) + self.w_fn(y_2))
-        s_hat = s_bar / torch.sqrt(torch.sum((s_bar + 0.0001) ** 2))
+        s_hat = s_bar / L2_NORM(s_bar)
 
         # Get the y_hat
         y_hat = c_hat * s_hat
+        y_hat += (y_2 + miu_y) / 2
 
         # Check if need to create the gaussian window 
         (_, channel, _, _) = y_hat.size()
@@ -113,4 +119,4 @@ class MEF_SSIM_Loss(nn.Module):
 
         # Compute SSIM between y_hat and y_f
         score = self._ssim(y_hat, y_f, window, self.window_size, channel, self.size_average)        
-        return 1 - score
+        return 1 - score, y_hat

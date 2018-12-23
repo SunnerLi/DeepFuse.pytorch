@@ -63,10 +63,12 @@ class BracketedDataset(Data.Dataset):
             under_list = []
             over_list  = []
             for i, m in enumerate(mean_list):
+                img = cv2.imread(imgs_list[i])
+                img = cv2.resize(img, (1200, 800))
                 if m > mean:
-                    over_list.append(imgs_list[i])
+                    over_list.append(img)
                 else:
-                    under_list.append(imgs_list[i])
+                    under_list.append(img)
             assert len(under_list) > 0 and len(over_list) > 0
 
             # Store the result
@@ -78,23 +80,21 @@ class BracketedDataset(Data.Dataset):
 
     def __getitem__(self, index):
         # Random select
-        under_img_name = self.under_exposure_imgs[index][random.randint(0, len(self.under_exposure_imgs[index]) - 1)]
-        over_img_name  = self.over_exposure_imgs[index][random.randint(0, len(self.over_exposure_imgs[index]) - 1)]
-        under_img = cv2.imread(under_img_name)
-        over_img  = cv2.imread(over_img_name)
+        under_img = self.under_exposure_imgs[index][random.randint(0, len(self.under_exposure_imgs[index]) - 1)]
+        over_img  = self.over_exposure_imgs[index][random.randint(0, len(self.over_exposure_imgs[index]) - 1)]
     
         under_img = cv2.cvtColor(under_img, cv2.COLOR_BGR2YCrCb)
         over_img = cv2.cvtColor(over_img, cv2.COLOR_BGR2YCrCb)
 
+        # Transform
+        if self.transform:
+            under_img = self.transform(under_img)
+            over_img  = self.transform(over_img)
+
         # Crop the patch
-        h, w, _ = under_img.shape
+        _, h, w = under_img.shape
         y = random.randint(0, h - self.crop_size)
         x = random.randint(0, w - self.crop_size)
-        under_patch = under_img[y:y + self.crop_size, x:x + self.crop_size, :]
-        over_patch  = over_img [y:y + self.crop_size, x:x + self.crop_size, :]
-
-        # Return
-        if self.transform:
-            under_patch = self.transform(under_patch)
-            over_patch  = self.transform(over_patch)
+        under_patch = under_img[:, y:y + self.crop_size, x:x + self.crop_size]
+        over_patch  = over_img [:, y:y + self.crop_size, x:x + self.crop_size]
         return under_patch, over_patch
