@@ -6,7 +6,9 @@ import torch
 
     Author: SunnerLi
 """
-
+# -------------------------------------------------------------------------------------------------------
+#   Define layers
+# -------------------------------------------------------------------------------------------------------
 class ConvLayer(nn.Module):
     def __init__(self, in_channels = 1, out_channels = 16, kernel_size = 5, last = nn.ReLU):
         super().__init__()
@@ -28,6 +30,9 @@ class FusionLayer(nn.Module):
     def forward(self, x, y):
         return x + y
 
+# -------------------------------------------------------------------------------------------------------
+#   Define model
+# -------------------------------------------------------------------------------------------------------
 class DeepFuse(nn.Module):
     def __init__(self, device = 'cpu'):
         super().__init__()

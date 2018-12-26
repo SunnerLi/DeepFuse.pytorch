@@ -42,7 +42,6 @@ class BracketedDataset(Data.Dataset):
         self.transform = transform
         self.under_exposure_imgs = []
         self.over_exposure_imgs  = []
-        # self.files = self.files[:5]
         self.statistic()
 
     def statistic(self):
@@ -53,7 +52,6 @@ class BracketedDataset(Data.Dataset):
             mean_list = []
             imgs_list = glob(os.path.join(folder_name, '*'))
             for img_name in imgs_list:
-                # img = imageio.imread(img_name)
                 img = cv2.imread(img_name)
                 mean = np.mean(img)
                 mean_list.append(mean)
@@ -82,7 +80,6 @@ class BracketedDataset(Data.Dataset):
         # Random select
         under_img = self.under_exposure_imgs[index][random.randint(0, len(self.under_exposure_imgs[index]) - 1)]
         over_img  = self.over_exposure_imgs[index][random.randint(0, len(self.over_exposure_imgs[index]) - 1)]
-    
         under_img = cv2.cvtColor(under_img, cv2.COLOR_BGR2YCrCb)
         over_img = cv2.cvtColor(over_img, cv2.COLOR_BGR2YCrCb)
 

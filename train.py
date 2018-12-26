@@ -1,8 +1,8 @@
-from dataset import BracketedDataset
-from utils import INFO, fusePostProcess
-from loss  import MEF_SSIM_Loss
+from lib.dataset import BracketedDataset
+from lib.utils import INFO, fusePostProcess
+from lib.loss  import MEF_SSIM_Loss
+from lib.model import DeepFuse
 from opts  import TrainOptions
-from model import DeepFuse
 
 import torchvision_sunner.transforms as sunnertransforms
 import torchvision_sunner.data as sunnerData
@@ -35,7 +35,7 @@ def train(opts):
                 sunnertransforms.Transpose(sunnertransforms.BHWC2BCHW),
                 sunnertransforms.Normalize(),
             ])
-        ), batch_size = opts.batch_size, shuffle = True, num_workers = 8
+        ), batch_size = opts.batch_size, shuffle = True, num_workers = 0
     )
 
     # Create the model
@@ -75,8 +75,8 @@ def train(opts):
         Loss_list.append(np.mean(loss_list))
 
         # Save the training image
-        if ep % 100 == 0:
-            img = fusePostProcess(y_f, y_hat, patch1, patch2, single=False)
+        if ep % opts.record_epoch == 0:
+            img = fusePostProcess(y_f, y_hat, patch1, patch2, single = False)
             cv2.imwrite(os.path.join(opts.det, 'image', str(ep) + ".png"), img[0, :, :, :])
 
         # Save the training model

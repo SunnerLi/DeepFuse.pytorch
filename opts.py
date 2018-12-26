@@ -1,7 +1,13 @@
-from utils import INFO
+from lib.utils import INFO
 import argparse
 import torch
 import os
+
+"""
+    This script defines the procedure to parse the parameters
+
+    Author: SunnerLi
+"""
 
 def presentParameters(args_dict):
     """
@@ -16,7 +22,7 @@ def presentParameters(args_dict):
 
 class TrainOptions():
     """
-        Argument Explaination
+                                                    Argument Explaination
         ======================================================================================================================
                 Symbol          Type            Default                         Explaination
         ----------------------------------------------------------------------------------------------------------------------
@@ -25,17 +31,19 @@ class TrainOptions():
             --batch_size        Int         8                               -
             --resume            Str         1.pth                           The path of pre-trained model
             --det               Str         train_result                    The path of folder you want to store the result in
-            --epoch             Int         100                             -
+            --epoch             Int         15000                           -
+            --record_epoch      Int         100                             The period you want to store the result
         ----------------------------------------------------------------------------------------------------------------------
     """
     def __init__(self):
         parser = argparse.ArgumentParser()
-        parser.add_argument('--folder'      , type = str, default = "/home/sunner/Music/HDREyeDataset/images/Bracketed_images")
-        parser.add_argument('--crop_size'   , type = int, default = 256)
-        parser.add_argument('--batch_size'  , type = int, default = 8)
-        parser.add_argument('--resume'      , type = str, default = "1.pth")
-        parser.add_argument('--det'         , type = str, default = "train_result")
-        parser.add_argument('--epoch'       , type = int, default = 100)
+        parser.add_argument('--folder'          , type = str, default = "/home/sunner/Music/HDREyeDataset/images/Bracketed_images")
+        parser.add_argument('--crop_size'       , type = int, default = 256)
+        parser.add_argument('--batch_size'      , type = int, default = 8)
+        parser.add_argument('--resume'          , type = str, default = "1.pth")
+        parser.add_argument('--det'             , type = str, default = "train_result")
+        parser.add_argument('--epoch'           , type = int, default = 15000)
+        parser.add_argument('--record_epoch'    , type = int, default = 100)
         self.opts = parser.parse_args()
         self.opts.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -55,11 +63,11 @@ class TrainOptions():
             os.mkdir(model_folder_name)    
         return self.opts
 
-###############################################################################################################
+###########################################################################################################################################
 
 class TestOptions():
     """
-        Argument Explaination
+                                                    Argument Explaination
         ======================================================================================================================
                 Symbol          Type            Default                         Explaination
         ----------------------------------------------------------------------------------------------------------------------
@@ -67,14 +75,18 @@ class TestOptions():
             --image2            Str         X                               The path of over-exposure image
             --model             Str         model.pth                       The path of pre-trained model
             --res               Str         result.png                      The path to store the fusing image
+            --H                 Int         400                             The height of the result image
+            --W                 Int         600                             The width of the result image
         ----------------------------------------------------------------------------------------------------------------------
     """
     def __init__(self):
         parser = argparse.ArgumentParser()
-        parser.add_argument('--image1', type = str, required = True)
-        parser.add_argument('--image2', type = str, required = True)
-        parser.add_argument('--model', type = str, default = "model.pth")
-        parser.add_argument('--res', type = str, default = 'result.png')
+        parser.add_argument('--image1'  , type = str, required = True)
+        parser.add_argument('--image2'  , type = str, required = True)
+        parser.add_argument('--model'   , type = str, default = "model.pth")
+        parser.add_argument('--res'     , type = str, default = 'result.png')
+        parser.add_argument('--H'       , type = int, default = 400)
+        parser.add_argument('--W'       , type = int, default = 600)
         self.opts = parser.parse_args()
         self.opts.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 

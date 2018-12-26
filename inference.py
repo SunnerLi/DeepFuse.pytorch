@@ -1,7 +1,7 @@
-from utils import INFO, fusePostProcess
-from loss  import MEF_SSIM_Loss
+from lib.utils import INFO, fusePostProcess
+from lib.loss  import MEF_SSIM_Loss
+from lib.model import DeepFuse
 from opts  import TestOptions
-from model import DeepFuse
 
 import torchvision_sunner.transforms as sunnertransforms
 import torchvision_sunner.data as sunnerData
@@ -21,18 +21,15 @@ import os
 def inference(opts):
     # Load the image
     ops = transforms.Compose([
-        sunnertransforms.Resize((256, 256)),
+        sunnertransforms.Resize((opts.H, opts.W)),
         sunnertransforms.ToTensor(),
         sunnertransforms.ToFloat(),
         sunnertransforms.Transpose(sunnertransforms.BHWC2BCHW),
         sunnertransforms.Normalize(),
     ])
-    # img1 = io.imread(opts.image1)
     img1 = cv2.imread(opts.image1)
-    # print(img1.shape)
     img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2YCrCb)
     img1 = torch.unsqueeze(ops(img1), 0)
-    # img2 = io.imread(opts.image2)
     img2 = cv2.imread(opts.image2)
     img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2YCrCb)
     img2 = torch.unsqueeze(ops(img2), 0)

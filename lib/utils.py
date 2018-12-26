@@ -1,7 +1,3 @@
-import torchvision_sunner.transforms as sunnertransforms
-import torchvision_sunner.data as sunnerData
-import torchvision.transforms as transforms
-
 import numpy as np
 import torch
 import cv2
@@ -44,6 +40,7 @@ def fusePostProcess(y_f, y_hat, img1, img2, single = True):
         Perform the post fusion process toward the both image with generated luminance slice
 
         Arg:    y_f     (torch.Tensor)  - The generated luminance slice
+                y_hat   (torch.Tensor)  - The ground truth luminance slice which is computed by MEF-SSIM formula
                 img1    (torch.Tensor)  - The 1st image tensor (in YCrCb format)
                 img2    (torch.Tensor)  - The 2nd image tensor (in YCrCb format)
                 single  (Bool)          - If return the fusion result only or not

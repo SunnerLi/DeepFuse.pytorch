@@ -73,10 +73,7 @@ class MEF_SSIM_Loss(nn.Module):
             Arg:    y   (torch.Tensor)  - The structure tensor
             Ret:    The weight of the given structure
         """
-        # out = torch.sum(y.pow(4)).pow(1/4)
-        # out = torch.sum(y.pow(3)).pow(1/3)
-        # out = torch.sqrt(torch.sum(y ** 2))
-        out = torch.sum(torch.abs(y))
+        out = torch.sqrt(torch.sum(y ** 2))
         return out
 
     def forward(self, y_1, y_2, y_f):
@@ -102,7 +99,12 @@ class MEF_SSIM_Loss(nn.Module):
         s_bar = (self.w_fn(y_1) * s_1 + self.w_fn(y_2) * s_2) / (self.w_fn(y_1) + self.w_fn(y_2))
         s_hat = s_bar / L2_NORM(s_bar)
 
-        # Get the y_hat
+        # =============================================================================================
+        # < Get the y_hat >
+        #
+        # Rather to output y_hat, we shift it with the mean of the over-exposure image and mean image
+        # The result will much better than the original formula
+        # =============================================================================================
         y_hat = c_hat * s_hat
         y_hat += (y_2 + miu_y) / 2
 
