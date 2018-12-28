@@ -26,7 +26,7 @@ Idea
 1. Since the dataset that author used cannot be obtained, we use [HDR-Eye dataset](https://mmspg.epfl.ch/hdr-eye?fbclid=IwAR1YLuQvcpu6yM2MsV60LcbURFopzIqqUBKlBUjvbNCQBXxB3iMzgm0Uy8o) [2] which can also deal with multiple exposure fusion problem.
 2. Rather use _64*64_ patch size, we set the patch size as _256*256_.    
 3. We only train for 20 epochs. (30000 iteration for each epoch)    
-4. The calculation of y^hat is different. The detail can be found in [here](https://github.com/SunnerLi/DeepFuse.pytorch/blob/master/loss.py#L100). 
+4. The calculation of y^hat is different. The detail can be found in [here](https://github.com/SunnerLi/DeepFuse.pytorch/blob/master/lib/loss.py#L102). 
 
 Usage
 ---
